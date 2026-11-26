@@ -57,12 +57,15 @@ Recording: [watch the recorded run](https://asciinema.org/a/CSKovFSaPx55lxZy)
 permanent cast is [`reports/stage2-demo.cast`](reports/stage2-demo.cast); play
 it with `asciinema play reports/stage2-demo.cast`.
 
-### GIF recording
+### Demo recording
 
-![TraceFuse Stage 2 demo](reports/stage2-demo.gif)
+[Watch the MP4](reports/stage2-demo.mp4)
 
-The GIF runs for ~30 s and shows the essential firecracker steps: safe observe,
-policy approval, enforcement, and the malicious‑variant block.
+![TraceFuse Stage 2 demo](reports/stage2-demo.gif)
+
+The recording (~39 s) shows the Firecracker-backed demo on EC2: host preflight,
+safe observe, policy approval, enforcement, malicious variant blocked, and
+`verify-demo: PASS`.
 
 Operational notes:
 
