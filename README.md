@@ -52,6 +52,18 @@ the Firecracker CI kernel 6.18.62:
 Evidence: `reports/stage2-host-check.txt`, `reports/stage2-demo.log`,
 `reports/stage2-verify-demo.txt`.
 
+Recording: [watch the recorded run](https://asciinema.org/a/CSKovFSaPx55lxZy)
+(online copy; retained for 7 days unless linked to an asciinema account). The
+permanent cast is [`reports/stage2-demo.cast`](reports/stage2-demo.cast); play
+it with `asciinema play reports/stage2-demo.cast`.
+
+### GIF recording
+
+![TraceFuse Stage 2 demo](reports/stage2-demo.gif)
+
+The GIF runs for ~30 s and shows the essential firecracker steps: safe observe,
+policy approval, enforcement, and the malicious‑variant block.
+
 Operational notes:
 
 - Use `TMPDIR="$HOME/tmp"` when `/tmp` is a small tmpfs; the backend copies the
