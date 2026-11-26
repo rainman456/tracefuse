@@ -1,0 +1,14 @@
+ok   1 observe run completes
+ok   1 safe program has no findings
+ok   2 useful destination is learned
+ok   3 proposal is approved
+ok   4 enforcement allows the workload
+ok   4 workload really returned data
+ok   5 metadata endpoint is blocked
+ok   5 metadata endpoint has a BLOCKED line
+ok   5 shell/network tool has a BLOCKED line
+ok   5 sensitive file has a BLOCKED line
+ok   5 at least three blocked actions (3)
+ok   6 observing an attack is still a finding
+ok   7 diff reports a regression
+verify-demo: PASS

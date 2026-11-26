@@ -1,0 +1,17 @@
+./scripts/check-host.sh
+ok   /dev/kvm is present and accessible
+ok   CPU exposes hardware virtualization (vmx/svm)
+ok   Firecracker v1.18.0
+ok   kernel is an ELF vmlinux: guest/out/vmlinux
+ok   kernel has a .BTF section
+ok   rootfs is ext4: guest/out/rootfs.ext4
+ok   host tool: mkfs.ext4
+ok   host tool: truncate
+ok   host tool: resize2fs
+ok   host tool: sudo
+ok   host tool: ip
+ok   TAP tf0 has 172.16.0.1/30
+ok   TAP tf0 is up
+warn mock API not answering at http://172.16.0.1:8080/data (start: python3 demos/mock_server.py 172.16.0.1)
+check-host: PASS
+next: TF_BACKEND=firecracker TF_TAP=tf0 make demo

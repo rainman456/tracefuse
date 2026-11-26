@@ -35,6 +35,32 @@ because the operator passes it explicitly (`--trusted-hosts`, or
 `TF_TRUSTED_HOSTS`). Cloud metadata and other link-local endpoints are never
 learned, trusted or not.
 
+## Verified Firecracker run
+
+Exercised on an Ubuntu 26.04 x86_64 EC2 host with KVM, Firecracker v1.18.0 and
+the Firecracker CI kernel 6.18.62:
+
+- `make host-check` -> PASS (KVM, `.BTF` vmlinux, ext4 rootfs, TAP `tf0` at
+  `172.16.0.1/30`).
+- `TF_BACKEND=firecracker TF_TAP=tf0 make demo` -> PASS.
+- `./scripts/verify-demo.sh demo.log` -> PASS.
+- Under the approved policy, the useful workload exited 0 and returned the mock
+  data; the same policy blocked the metadata endpoint `169.254.169.254:80`,
+  `curl`, and `/etc/shadow`. The behavioural diff flagged the malicious variant
+  as a regression.
+
+Evidence: `reports/stage2-host-check.txt`, `reports/stage2-demo.log`,
+`reports/stage2-verify-demo.txt`.
+
+Operational notes:
+
+- Use `TMPDIR="$HOME/tmp"` when `/tmp` is a small tmpfs; the backend copies the
+  2 GiB rootfs for each VM.
+- The CI kernel lacks `NF_LOG_IPV4`; the nftables rules omit `log prefix` and
+  still fail closed.
+- `guest/build-rootfs.sh` bind-mounts `/dev`, `/dev/pts`, `/proc`, and `/sys`
+  so apt works inside the chroot.
+
 ## Commands
 
 | Command | What it does |
@@ -57,8 +83,11 @@ internal/trace/         event schema
 internal/report/        timelines, findings, cross-checks
 guest/                  init (PID 1), bpftrace observer, rootfs build
 demos/                  safe, useful, malicious programs + mock API
-docs/                   architecture and threat model
+docs/                   architecture, threat model, and EXPLAINER.md (start here)
 ```
+
+New to the code? Read [`docs/EXPLAINER.md`](docs/EXPLAINER.md): a plain-English
+tour with diagrams, OS background, feature recipes and a debugging playbook.
 
 ## Security rules this code enforces
 
