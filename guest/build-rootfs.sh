@@ -65,11 +65,19 @@ fi
 MNT=$(mktemp -d)
 cleanup() {
   sync
+  sudo umount "$MNT/dev/pts" 2>/dev/null || true
+  sudo umount "$MNT/dev" 2>/dev/null || true
+  sudo umount "$MNT/proc" 2>/dev/null || true
+  sudo umount "$MNT/sys" 2>/dev/null || true
   sudo umount "$MNT" 2>/dev/null || true
   rmdir "$MNT" 2>/dev/null || true
 }
 trap cleanup EXIT
 sudo mount -o loop "$OUT/rootfs.ext4" "$MNT"
+sudo mount --bind /dev "$MNT/dev"
+sudo mount --bind /dev/pts "$MNT/dev/pts"
+sudo mount -t proc proc "$MNT/proc"
+sudo mount -t sysfs sys "$MNT/sys"
 
 # Replace (not follow) resolv.conf: cloud images often symlink it.
 sudo rm -f "$MNT/etc/resolv.conf"
@@ -77,6 +85,10 @@ sudo cp /etc/resolv.conf "$MNT/etc/resolv.conf"
 sudo chroot "$MNT" /bin/sh -c '
   set -e
   export DEBIAN_FRONTEND=noninteractive
+  mkdir -p /var/cache/apt/archives/partial /var/lib/apt/lists/partial /var/log/apt
+  touch /var/log/dpkg.log
+  chown _apt:root /var/cache/apt/archives/partial /var/lib/apt/lists/partial
+  chmod 700 /var/cache/apt/archives/partial /var/lib/apt/lists/partial
   apt-get update
   apt-get install -y --no-install-recommends \
     python3 python3-seccomp bpftrace nftables iproute2 ca-certificates curl

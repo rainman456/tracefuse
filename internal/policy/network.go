@@ -16,7 +16,7 @@ func (p *Policy) NetworkArtifacts() (rules, hosts string, err error) {
 	b.WriteString("    type filter hook output priority 0; policy drop;\n")
 	b.WriteString("    oif \"lo\" accept\n")
 	b.WriteString("    ct state established,related accept\n")
-	b.WriteString("    ip daddr 169.254.0.0/16 log prefix \"TFBLOCK \" drop\n")
+	b.WriteString("    ip daddr 169.254.0.0/16 drop\n")
 	for _, d := range p.Network.Allow {
 		host, port, err := net.SplitHostPort(d)
 		if err != nil {
@@ -39,6 +39,6 @@ func (p *Policy) NetworkArtifacts() (rules, hosts string, err error) {
 			fmt.Fprintf(&b, "    ip daddr %s tcp dport %s accept\n", ip, port)
 		}
 	}
-	b.WriteString("    log prefix \"TFBLOCK \" drop\n  }\n}\n")
+	b.WriteString("    drop\n  }\n}\n")
 	return b.String(), h.String(), nil
 }
